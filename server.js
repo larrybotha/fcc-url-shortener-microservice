@@ -9,8 +9,13 @@ var fs = require('fs');
 var express = require('express');
 var app = express();
 
-const db = require('./db');
-console.log(db);
+/**/
+const urlShortenerRouter = require('./url-shortener-router');
+const {init: initDb} = require('./db');
+
+initDb();
+
+/**/
 
 if (!process.env.DISABLE_XORIGIN) {
   app.use(function(req, res, next) {
@@ -40,6 +45,8 @@ app.route('/')
     .get(function(req, res) {
 		  res.sendFile(process.cwd() + '/views/index.html');
     })
+
+app.use('/', urlShortenerRouter);
 
 // Respond not found to all the wrong routes
 app.use(function(req, res, next){

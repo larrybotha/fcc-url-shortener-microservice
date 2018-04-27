@@ -1,21 +1,21 @@
 const MongoClient = require('mongodb').MongoClient;
 
-const user = process.env.DB_USER;
-const password = process.env.DB_PWORD;
+const urlString = process.env.DB_URL_STRING;
 const dbName = process.env.DB_NAME;
-const host = process.env.DB_HOST;
-const port = process.env.DB_PORT;
 
 // https://zellwk.com/blog/crud-express-mongodb/
-// https://dev.to/aurelkurtula/building-a-restful-api-with-express-and-mongodb--3mmh
+// https://dev.to/aurelkurtula/building-a-restful-api-with-express-and-mongodb--3mm\h
 // http://mongodb.github.io/node-mongodb-native/3.0/api/MongoClient.html#.connect
-const url = `mongodb://${user}:${password}@${host}:${port}`;
-let db;
+// https://webapplog.com/express-js-4-node-js-and-mongodb-rest-api-tutorial/
 
-MongoClient.connect(url, (err, client) => {
-  if (err) throw err;
-  
-  db = client.db(dbName);
-})
+const createConnection = () => {
+  MongoClient.connect(`${urlString}/${dbName}`, (err, client) => {
+    if (err) throw err;
 
-module.exports = db;
+    const db = client.db(dbName);
+    
+    module.exports.db = db;
+  })
+}
+
+module.exports.init = createConnection;
