@@ -1,38 +1,49 @@
 const express = require('express');
 const router  = express.Router();
 const validUrl = require('valid-url');
+const shortid = require('shortid');
 
-const db = require('./db');
+const mongo = require('./db');
 
-router.get('/new/:url', async function(req, res) {
+router.get('/new/:url(*)', async function(req, res) {
   const url = req.params.url;
-  
-  if (!validUrl.isUri(url)) res.json({error: `${url} is not a valid URL`});
-  
-  const isNew = await db.collection('urls').find({originalUrl: url}, (err, res) => {
-    if (err) throw err;
+
+  // set the content-type
+  // res.set('Content-type', 'application/json');
+  res.type('application/json');
+
+  if (!validUrl.isUri(url)) {
+    // set status to 400 and return message
+    return res.status(400)
+              .json({error: `${url} is not a valid URL`});
+  }
+
+  const collection = mongo.db.collection('urls');
+  let data = await collection.findOne({originalUrl: url})
+
+  if (!data) {
+    const result = await collection.insert({
+      originalUrl: url,
+      shortUrl: `${req.protocol}://${req.hostname}/${shortid.generate()}`,
+    });
     
-    return res.toArray();
-  })
-  
-  console.log(isNew);
-  
-  
-  // is in database?
-    // return shortened url
-  // else create shortened url
-    // return shortened url
-  
-  res.json({result: 'ok'})
+    data = result.ops.find(Boolean);
+  }
+
+  res.json(data)
 })
 
-router.get('/:id', (req, res) => {
-  // shortened url exists 
-    // redirect to original
-  // else show error
+router.get('/:id', async function(req, res) {
+  const collection = mongo.db.collection('urls');
+  const {originalUrl} = await collection.findOne({
+    shortUrl: new RegExp(req.params.id),
+  }) || {};
   
-  console.log(req.params.url);
-  res.json({url: req.params.url});
+  if (originalUrl) {
+    res.redirect(originalUrl);
+  } else {
+    res.status(404).json({ error: `no URL for id ${req.params.id}`});
+  }
 })
 
 module.exports = router;
