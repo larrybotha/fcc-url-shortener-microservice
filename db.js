@@ -8,13 +8,15 @@ const dbName = process.env.DB_NAME;
 // http://mongodb.github.io/node-mongodb-native/3.0/api/MongoClient.html#.connect
 // https://webapplog.com/express-js-4-node-js-and-mongodb-rest-api-tutorial/
 
-const createConnection = () => {
+const createConnection = cb => {
   MongoClient.connect(`${urlString}/${dbName}`, (err, client) => {
     if (err) throw err;
 
     const db = client.db(dbName);
     
     module.exports.db = db;
+    
+    if (cb) cb();
   })
 }
 

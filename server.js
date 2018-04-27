@@ -13,8 +13,6 @@ var app = express();
 const urlShortenerRouter = require('./url-shortener-router');
 const {init: initDb} = require('./db');
 
-initDb();
-
 /**/
 
 if (!process.env.DISABLE_XORIGIN) {
@@ -63,7 +61,9 @@ app.use(function(err, req, res, next) {
   }  
 })
 
-app.listen(process.env.PORT, function () {
-  console.log('Node.js listening ...');
+// init database, and only start app on success
+initDb(() => {
+  app.listen(process.env.PORT, function () {
+    console.log('Node.js listening ...');
+  });
 });
-
